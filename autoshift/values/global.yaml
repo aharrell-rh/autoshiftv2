@@ -22,7 +22,7 @@ gitopsNamespace: openshift-gitops
 selfManagedHubSet: hub
 
 excludePolicies:
-  - advanced-cluster-management
+  - advanced-cluster-security
   - cluster-config-maps
   - cluster-install
   - cluster-labels
