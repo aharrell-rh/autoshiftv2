@@ -14,11 +14,11 @@ spec:
       apiVersion: policy.open-cluster-management.io/v1
       compliance: Compliant
       kind: Policy
-    - name: policy-dynatrace-api-key
-      namespace: {{ .Values.policy_namespace }}
-      apiVersion: policy.open-cluster-management.io/v1
-      compliance: Compliant
-      kind: Policy
+    # - name: policy-dynatrace-api-key
+    #   namespace: {{ .Values.policy_namespace }}
+    #   apiVersion: policy.open-cluster-management.io/v1
+    #   compliance: Compliant
+    #   kind: Policy
   disabled: false
   hubTemplateOptions:
     serviceAccountName: secret-reader
