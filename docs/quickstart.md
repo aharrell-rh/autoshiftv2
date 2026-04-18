@@ -142,11 +142,10 @@ Using helm and the values you set for cluster labels, install AutoShift. Here is
 
 ```console
 export APP_NAME="autoshift"
-export REPO_URL="https://github.com/auto-shift/autoshiftv2.git"
-export TARGET_REVISION="main"
+export REPO_URL="https://github.com/aharrell-rh/autoshiftv2.git"
+export TARGET_REVISION="work/aws-cluster"
 export VALUES_FILE="values/global.yaml"
-export VALUES_FILE_2="values/clustersets/hub.yaml"
-export VALUES_FILE_3="values/clustersets/managed.yaml"
+export VALUES_FILE_2="values/clustersets/globalhub.yaml"
 export ARGO_PROJECT="default"
 export GITOPS_NAMESPACE="openshift-gitops"
 cat << EOF | oc apply -f -
@@ -167,7 +166,6 @@ spec:
       valueFiles:
         - $VALUES_FILE
         - $VALUES_FILE_2
-        - $VALUES_FILE_3
       values: |-
         autoshiftGitRepo: $REPO_URL
         autoshiftGitBranchTag: $TARGET_REVISION
