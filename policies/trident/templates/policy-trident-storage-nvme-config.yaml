@@ -34,7 +34,8 @@ spec:
           severity: high
           object-templates-raw: |
             {{ "{{hub" }} $configs := index (index (fromConfigMap "{{ $.Values.policy_namespace }}" (print .ManagedClusterName ".rendered-config") "config" | default "" | fromYaml) "trident" | default dict) {{ "hub}}" }}
-            {{ "{{hub" }} range $storage := $configs.storage {{ "hub}}" }}
+            {{ "{{hub" }} if and $configs.storage $configs.storage.nvme {{ "hub}}" }}
+            {{ "{{hub" }} range $storage := $configs.storage.nvme {{ "hub}}" }}
             - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: trident.netapp.io/v1
@@ -45,9 +46,9 @@ spec:
                 spec:
                   version: 1
                   backendName: "{{ "{{hub" }} $storage.backendName {{ "hub}}" }}"
-                  storageDriverName: "{{ "{{hub" }} $storage.backendType | default "ontap-san" {{ "hub}}" }}"
+                  storageDriverName: ontap-san
                   managementLIF: "{{ "{{hub" }} $storage.svmLif {{ "hub}}" }}"
-                  sanType: "{{ "{{hub" }} $storage.backendType | default "nvme" {{ "hub}}" }}"
+                  sanType: nvme
                   credentials:
                     name: "{{ "{{hub" }} $storage.secretName {{ "hub}}" }}"
             - complianceType: mustonlyhave
@@ -55,39 +56,21 @@ spec:
                 apiVersion: storage.k8s.io/v1
                 kind: StorageClass
                 metadata:
-                {{ "{{hub" }}- if eq $storage.defaultStorageClass "true" {{ "hub}}" }}
+                  name: "{{ "{{hub" }} $storage.storageClassName {{ "hub}}" }}"
+                  {{ "{{hub" }}- if eq ($storage.defaultStorageClass | default "false") "true" {{ "hub}}" }}
                   annotations:
                     storageclass.kubernetes.io/is-default-class: 'true'
-                {{ "{{hub" }}- end {{ "hub}}" }}
-                  name: "{{ "{{hub" }} $storage.backendName {{ "hub}}" }}"
+                  {{ "{{hub" }}- end {{ "hub}}" }}
                 provisioner: csi.trident.netapp.io
                 parameters:
-                  backendType: "{{ "{{hub" }} $storage.backendType | default "ontap-san" {{ "hub}}" }}"
+                  backendType: "ontap-san"
                   storagePools: "{{ "{{hub" }} $storage.backendName {{ "hub}}" }}:.*"
                   fsType: "{{ "{{hub" }} $storage.fsType | default "ext4" {{ "hub}}" }}"
                 mountOptions:
                   - discard
                 allowVolumeExpansion: true
             {{ "{{hub" }} end {{ "hub}}" }}
-    - objectDefinition:
-        apiVersion: policy.open-cluster-management.io/v1
-        kind: ConfigurationPolicy
-        metadata:
-          name: trident-snapshot-class
-        spec:
-          remediationAction: enforce
-          severity: high
-          object-templates-raw: |
-            - complianceType: mustonlyhave
-              objectDefinition:
-                apiVersion: snapshot.storage.k8s.io/v1
-                kind: VolumeSnapshotClass
-                metadata:
-                  name: trident-csi-snapclass
-                  annotations:
-                    snapshot.storage.kubernetes.io/is-default-class: "true"
-                driver: csi.trident.netapp.io
-                deletionPolicy: Delete
+            {{ "{{hub" }} end {{ "hub}}" }}
 ---
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement

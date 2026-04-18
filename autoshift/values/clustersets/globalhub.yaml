@@ -384,7 +384,7 @@ hubClusterSets:
       dynatrace-install-plan-approval: Automatic
       dynatrace-hub-cluster-name: 'thisisafakeclustername'
       ### Trident
-      trident: 'false'
+      trident: 'true'
       trident-name: trident-operator
       trident-install-plan-approval: Automatic
       trident-source: certified-operators
@@ -406,18 +406,15 @@ clusters:
             - dynatrace-api
           args:
             - "--set-host-tag=Environment=Environment"
-            - "--set-host-tag=Region=Region"
-            - "--set-host-tag=Color=Color"
           labels:
             - "Enviroment=Dev"
-            - "Region=East"
-            - "Color=Red"
       trident:
         storage:
-          - backendName: "testbackend"
-            secretName: "netapp-admin"
-            secretNamespace: "eso-secrets"
-            svmLif: "example.com"
-            storageClassName: "netapp-nvme"
-            defaultStorageClass: "true"
-            useREST: "true"
+          nvme:
+            - backendName: "testbackend"
+              secretName: "netapp-admin"
+              secretNamespace: "eso-secrets"
+              svmLif: "example.com"
+              storageClassName: "netapp-nvme"
+              defaultStorageClass: "true"
+              useREST: "true"
