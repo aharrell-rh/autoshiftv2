@@ -395,10 +395,9 @@ clusters:
     config:
       dynatrace:
         connection:
-          - apiUrl: xxxx
-            apiTokensSecretName: xxxxx
-            envTag: xxxxx
-            secretNamespace: xxxxx
+          - apiUrl: https://thisisnotarealurl.com/ipromise
+            apiTokensSecretName: dynatrace-api-key
+            secretNamespace: eso-secrets
         oneAgent:
           args:
             - "--set-host-tag=Environment=Environment"
