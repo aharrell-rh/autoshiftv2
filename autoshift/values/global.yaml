@@ -21,17 +21,17 @@ gitopsNamespace: openshift-gitops
 
 selfManagedHubSet: hub
 
-excludePolicies:
-  - advanced-cluster-security
-  - cluster-config-maps
-  - cluster-install
-  - cluster-labels
-  - machine-health-checks
-  - manual-remediations
-  - mtv
-  - nmstate
-  - openshift-gitops
-  - openshift-virtualization
+# excludePolicies:
+#   - advanced-cluster-security
+#   - cluster-config-maps
+#   - cluster-install
+#   - cluster-labels
+#   - machine-health-checks
+#   - manual-remediations
+#   - mtv
+#   - nmstate
+#   - openshift-gitops
+#   - openshift-virtualization
 
 # Optional: Enable versioned ClusterSet names for gradual rollout
 # When true, appends version/branch to all clusterset names
