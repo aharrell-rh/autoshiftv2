@@ -375,3 +375,35 @@ hubClusterSets:
       opentelemetry-channel: stable
       opentelemetry-source: redhat-operators
       opentelemetry-source-namespace: openshift-marketplace
+      ### Dynatrace
+      dynatrace: 'false'
+      dynatrace-subscription-name: dynatrace-operator
+      dynatrace-channel: alpha
+      dynatrace-source: certified-operators
+      dynatrace-source-namespace: openshift-marketplace
+      dynatrace-install-plan-approval: Automatic
+      ### Trident
+      trident: 'false'
+      trident-name: trident-operator
+      trident-install-plan-approval: Automatic
+      trident-source: certified-operators
+      trident-source-namespace: openshift-marketplace
+      trident-channel: stable
+      # trident-version: trident-operator.v25.10.0-linux-only
+config:
+  local-cluster:
+    dynatrace:
+      connection:
+        - apiUrl: xxxx
+          apiTokensSecretName: xxxxx
+          envTag: xxxxx
+          secretNamespace: xxxxx
+    trident:
+      storage:
+        - backendName: "testbackend"
+          secretName: "netapp-admin"
+          secretNamespace: "eso-secrets"
+          svmLif: "example.com"
+          storageClassName: "netapp-nvme"
+          defaultStorageClass: "true"
+          useREST: "true"

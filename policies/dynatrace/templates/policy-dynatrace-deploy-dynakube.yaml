@@ -46,7 +46,7 @@ spec:
             {{ "{{hub" }} $clusterName := .ManagedClusterName {{ "hub}}" }}
             {{ "{{hub" }} $clusterLabels := .ManagedClusterLabels {{ "hub}}" }}
             {{ "{{hub" }} range $dynatrace := $configs.connection {{ "hub}}" }}
-            - complianceType: musthave
+            - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: dynatrace.com/v1beta6
                 kind: DynaKube
@@ -58,12 +58,20 @@ spec:
                   {{- "{{hub" }}- end {{ "hub}}" }}
                   namespace: {{ .Values.dynatrace.namespace }}
                 spec:
+                  tokens: dynakube
                   apiUrl: "{{ "{{hub" }} $dynatrace.apiUrl {{ "hub}}" }}"
                   skipCertCheck: false
                   metadataEnrichment:
                     enabled: true
                   oneAgent:
                     cloudNativeFullStack:
+                      initResources:
+                        requests:
+                          cpu: {{ ((.Values.dynatrace.oneAgent.initContainers.resources).requests).cpu | default "50m" }}
+                          memory: {{ ((.Values.dynatrace.oneAgent.initContainers.resources).requests).memory | default "100Mi" }}
+                        limits:
+                          cpu: {{ ((.Values.dynatrace.oneAgent.initContainers.resources).limits).cpu | default "500m" }}
+                          memory: {{ ((.Values.dynatrace.oneAgent.initContainers.resources).limits).memory | default "1Gi" }}
                       tolerations:
                         - effect: NoSchedule
                           key: node-role.kubernetes.io/master
@@ -71,8 +79,18 @@ spec:
                         - effect: NoSchedule
                           key: node-role.kubernetes.io/control-plane
                           operator: Exists
+                      namespaceSelector:
+                        matchExpressions:
+                          - key: kubernetes.io/metadata.name
+                            operator: NotIn
+                            values:
+                              {{- range .Values.dynatrace.excludedNamespaces }}
+                              - {{ . }}
+                              {{- end }}
                       # args:
-                      # labels: # add tags from configmap 
+                      #. add config
+                      # labels:
+                      #   add labels
                   activeGate:
                     capabilities:
                       - routing
@@ -80,10 +98,10 @@ spec:
                       - dynatrace-api
                     resources:
                       requests:
-                        cpu: {{ ((.Values.dynatrace.activeGate.resources).limits).cpu | default "500m" }}
-                        memory: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "512Mi" }}
+                        cpu: {{ ((.Values.dynatrace.activeGate.resources).requests).cpu | default "500m" }}
+                        memory: {{ ((.Values.dynatrace.activeGate.resources).requests).memory | default "512Mi" }}
                       limits:
-                        cpu: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "512Mi" }}
+                        cpu: {{ ((.Values.dynatrace.activeGate.resources).limits).cpu | default "1000m" }}
                         memory: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "1.5Gi" }}
             {{ "{{hub-" }} end {{ "hub}}" }}
     - objectDefinition:
