@@ -38,7 +38,7 @@ spec:
               ❌ Hub cluster detected but dynatrace-hub-cluster-name label is missing!
               By default, ACM names the hub "local-cluster"; Dynatrace requires a unique name to import the hub correctly.
               {{ "{{hub" }} end {{ "hub}}" }}
-              ❌ Double check your labels to make sure your DynaKube object has all of the information it needs. Reference documentation as needed.
+              ❌ Double check your labels to make sure your DynaKube object has the data required. Reference documentation as needed.
           remediationAction: enforce
           severity: high
           object-templates-raw: |
@@ -79,6 +79,7 @@ spec:
                         - effect: NoSchedule
                           key: node-role.kubernetes.io/control-plane
                           operator: Exists
+                      {{- if .Values.dynatrace.excludedNamespaces }}
                       namespaceSelector:
                         matchExpressions:
                           - key: kubernetes.io/metadata.name
@@ -87,6 +88,7 @@ spec:
                               {{- range .Values.dynatrace.excludedNamespaces }}
                               - {{ . }}
                               {{- end }}
+                      {{- end }}
                       args:
                         {{- "{{hub" }} range $arg := (index $configs "oneAgent").args {{ "hub}}" }}
                         - {{ "{{hub" }} $arg {{ "hub}}" }}
