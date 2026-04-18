@@ -12,12 +12,25 @@ dynatrace:
   # targetNamespaces: # Optional: specify target namespaces for namespace-scoped operators
   #   - dynatrace
   activeGate:
-    limits:
-      cpu: 1000m
-      memory: 1.5Gi
-    requests:
-      cpu: 500m
-      memory: 512Mi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1.5Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+  oneAgent:
+    initContainers:
+      resources:
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+        requests:
+          cpu: 50m
+          memory: 1000Mi
+# Add the namespaces you want excluded from OneAgent injection as a list here. Dynatrace excludes kube-*, openshift-*, and default by default.
+# excludedNamespaces:
+#   - trident
 # hubClusterSets:
 #   hub:
 #     labels:
