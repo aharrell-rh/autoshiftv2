@@ -87,10 +87,15 @@ spec:
                               {{- range .Values.dynatrace.excludedNamespaces }}
                               - {{ . }}
                               {{- end }}
-                      # args:
-                      #. add config
-                      # labels:
-                      #   add labels
+                      args:
+                        {{- "{{hub" }} range $arg := (index $configs "oneAgent").args {{ "hub}}" }}
+                        - {{ "{{hub" }} $arg {{ "hub}}" }}
+                        {{- "{{hub" }} end {{ "hub}}" }}
+                      labels:
+                        {{- "{{hub" }} range $label := (index $configs "oneAgent").labels {{ "hub}}" }}
+                        {{- "{{hub" }} $kv := split "=" $label {{ "hub}}" }}
+                        {{ "{{hub" }} $kv._0 {{ "hub}}" }}: "{{ "{{hub" }} $kv._1 {{ "hub}}" }}"
+                        {{- "{{hub" }} end {{ "hub}}" }}
                   activeGate:
                     capabilities:
                       - routing
