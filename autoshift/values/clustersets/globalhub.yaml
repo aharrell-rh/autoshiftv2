@@ -410,10 +410,12 @@ clusters:
             - "Enviroment=Dev"
       trident:
         storage:
+          auth:
+            - secretName: "netapp-admin"
+              secretNamespace: "eso-secrets"
           nvme:
             - backendName: "testbackend"
               secretName: "netapp-admin"
-              secretNamespace: "eso-secrets"
               svmLif: "example.com"
               storageClassName: "netapp-nvme"
               defaultStorageClass: "true"
