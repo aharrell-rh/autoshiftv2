@@ -35,28 +35,30 @@ spec:
           customMessage:
             noncompliant: >-
               {{ "{{hub" }} if and (eq .ManagedClusterName "local-cluster") (not (index .ManagedClusterLabels "autoshift.io/dynatrace-hub-cluster-name")) {{ "hub}}" }}
-              ❌ Hub cluster detected but dynatrace-hub-cluster-name label is missing! 
+              ❌ Hub cluster detected but dynatrace-hub-cluster-name label is missing!
               By default, ACM names the hub "local-cluster"; Dynatrace requires a unique name to import the hub correctly.
               {{ "{{hub" }} end {{ "hub}}" }}
               ❌ Double check your labels to make sure your DynaKube object has all of the information it needs. Reference documentation as needed.
           remediationAction: enforce
           severity: high
           object-templates-raw: |
-            {{ "{{hub" }} $secret := index .ManagedClusterLabels "autoshift.io/dynatrace-api-key-secret" {{ "hub}}" }}
+            {{ "{{hub" }} $configs := index (index (fromConfigMap "{{ $.Values.policy_namespace }}" (print .ManagedClusterName ".rendered-config") "config" | default "" | fromYaml) "dynatrace" | default dict) {{ "hub}}" }}
+            {{ "{{hub" }} $clusterName := .ManagedClusterName {{ "hub}}" }}
+            {{ "{{hub" }} $clusterLabels := .ManagedClusterLabels {{ "hub}}" }}
+            {{ "{{hub" }} range $dynatrace := $configs.connection {{ "hub}}" }}
             - complianceType: musthave
               objectDefinition:
                 apiVersion: dynatrace.com/v1beta6
                 kind: DynaKube
                 metadata:
-                {{ "{{hub" }}- if eq .ManagedClusterName "local-cluster" {{ "hub}}" }}
-                  name: {{ "{{hub index .ManagedClusterLabels `autoshift.io/dynatrace-hub-cluster-name` hub}}" }}
-                {{ "{{hub" }}- else {{ "hub}}" }}
-                  name: {{ "{{hub .ManagedClusterName hub}}" }}
-                {{ "{{hub" }}- end {{ "hub}}" }}
-                  namespace: dynatrace
+                  {{- "{{hub" }}- if eq $clusterName "local-cluster" {{ "hub}}" }}
+                  name: "{{ "{{hub" }} index $clusterLabels `autoshift.io/dynatrace-hub-cluster-name` {{ "hub}}" }}"
+                  {{- "{{hub" }}- else {{ "hub}}" }}
+                  name: "{{ "{{hub" }} $clusterName {{ "hub}}" }}"
+                  {{- "{{hub" }}- end {{ "hub}}" }}
+                  namespace: {{ .Values.dynatrace.namespace }}
                 spec:
-                  tokens: dynakube
-                  apiUrl: https://{{ .Values.dynatrace.apiUrl }}
+                  apiUrl: "{{ "{{hub" }} $dynatrace.apiUrl {{ "hub}}" }}"
                   skipCertCheck: false
                   metadataEnrichment:
                     enabled: true
@@ -69,6 +71,8 @@ spec:
                         - effect: NoSchedule
                           key: node-role.kubernetes.io/control-plane
                           operator: Exists
+                      # args:
+                      # labels: # add tags from configmap 
                   activeGate:
                     capabilities:
                       - routing
@@ -76,17 +80,18 @@ spec:
                       - dynatrace-api
                     resources:
                       requests:
-                        cpu:  {{ ((.Values.dynatrace.activeGate).requests).cpu | default "500m" }}
-                        memory: {{ ((.Values.dynatrace.activeGate).requests).memory | default "512Mi" }} 
+                        cpu: {{ ((.Values.dynatrace.activeGate.resources).limits).cpu | default "500m" }}
+                        memory: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "512Mi" }}
                       limits:
-                        cpu: {{ ((.Values.dynatrace.activeGate).limits).memory | default "1000m" }}
-                        memory: {{ ((.Values.dynatrace.activeGate).limits).memory | default "1.5Gi" }} 
+                        cpu: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "512Mi" }}
+                        memory: {{ ((.Values.dynatrace.activeGate.resources).limits).memory | default "1.5Gi" }}
+            {{ "{{hub-" }} end {{ "hub}}" }}
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
         metadata:
           name: dynatrace-dynakube-test
-          namespace: policies-autoshift
+          namespace: {{ .Values.policy_namespace }}
         spec:
           remediationAction: inform # will be overridden by remediationAction in parent policy
           severity: high
@@ -96,12 +101,15 @@ spec:
                 apiVersion: dynatrace.com/v1beta6
                 kind: DynaKube
                 metadata:
+                apiVersion: dynatrace.com/v1beta6
+                kind: DynaKube
+                metadata:
                 {{ "{{hub" }}- if eq .ManagedClusterName "local-cluster" {{ "hub}}" }}
                   name: {{ "{{hub index .ManagedClusterLabels `autoshift.io/dynatrace-hub-cluster-name` hub}}" }}
                 {{ "{{hub" }}- else {{ "hub}}" }}
                   name: {{ "{{hub .ManagedClusterName hub}}" }}
                 {{ "{{hub" }}- end {{ "hub}}" }}
-                  namespace: dynatrace
+                  namespace: {{ .Values.dynatrace.namespace }}
                 status:
                   phase: Running
 ---
@@ -126,8 +134,6 @@ spec:
               operator: In
               values:
               - 'true'
-            - key: 'autoshift.io/dynatrace-api-key-secret'
-              operator: Exists
   tolerations:
     - key: cluster.open-cluster-management.io/unreachable
       operator: Exists
