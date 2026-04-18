@@ -29,8 +29,8 @@ dynatrace:
           cpu: 50m
           memory: 100Mi
 # Add the namespaces you want excluded from OneAgent injection as a list here. Dynatrace excludes kube-*, openshift-*, and default by default.
-  excludedNamespaces:
-    - trident
+  # excludedNamespaces:
+  #   - trident
 # hubClusterSets:
 #   hub:
 #     labels:
