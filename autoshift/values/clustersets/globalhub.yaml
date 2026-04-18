@@ -382,6 +382,7 @@ hubClusterSets:
       dynatrace-source: certified-operators
       dynatrace-source-namespace: openshift-marketplace
       dynatrace-install-plan-approval: Automatic
+      dynatrace-hub-cluster-name: 'thisisafakeclustername'
       ### Trident
       trident: 'false'
       trident-name: trident-operator
