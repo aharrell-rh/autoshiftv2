@@ -330,7 +330,7 @@ hubClusterSets:
       compliance-source-namespace: openshift-marketplace
       compliance-channel: stable
       ### OpenShift Virtualization
-      virt: 'true'
+      virt: 'false'
       virt-channel: stable
       virt-subscription-name: kubevirt-hyperconverged
       virt-source: redhat-operators
@@ -343,7 +343,7 @@ hubClusterSets:
       # Example: redhat-operators + -mirror = redhat-operators-mirror
       mirror-catalog-suffix: 'mirror'
       ### Migration Toolkit for Openshift Virtualization
-      mtv: 'true'
+      mtv: 'false'
       mtv-subscription-name: mtv-operator
       mtv-channel: release-v2.10
       mtv-source: redhat-operators
