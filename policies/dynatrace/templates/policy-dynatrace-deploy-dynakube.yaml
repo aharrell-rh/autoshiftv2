@@ -100,9 +100,9 @@ spec:
                         {{- "{{hub" }} end {{ "hub}}" }}
                   activeGate:
                     capabilities:
-                      - routing
-                      - kubernetes-monitoring
-                      - dynatrace-api
+                      {{- "{{hub" }} range $capabilities := (index $configs "oneAgent").capabilities {{ "hub}}" }}
+                      - {{ "{{hub" }} $capabilities {{ "hub}}" }}
+                      {{- "{{hub" }} end {{ "hub}}" }}
                     resources:
                       requests:
                         cpu: {{ ((.Values.dynatrace.activeGate.resources).requests).cpu | default "500m" }}

@@ -400,6 +400,10 @@ clusters:
             apiTokensSecretName: dynatrace-api-key
             secretNamespace: eso-secrets
         oneAgent:
+          capabilities:
+            - routing
+            - kubernetes-monitoring
+            - dynatrace-api
           args:
             - "--set-host-tag=Environment=Environment"
             - "--set-host-tag=Region=Region"
