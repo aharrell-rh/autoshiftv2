@@ -51,6 +51,9 @@ spec:
                   sanType: nvme
                   credentials:
                     name: "{{ "{{hub" }} $storage.secretName {{ "hub}}" }}"
+                {{ "{{hub" }}- if eq $storage.useREST "true" {{ "hub}}" }}
+                  useREST: true
+                {{ "{{hub" }}- end {{ "hub}}" }}
             - complianceType: mustonlyhave
               objectDefinition:
                 apiVersion: storage.k8s.io/v1
