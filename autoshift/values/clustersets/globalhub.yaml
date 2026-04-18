@@ -390,20 +390,21 @@ hubClusterSets:
       trident-source-namespace: openshift-marketplace
       trident-channel: stable
       # trident-version: trident-operator.v25.10.0-linux-only
-config:
+clusters:
   local-cluster:
-    dynatrace:
-      connection:
-        - apiUrl: xxxx
-          apiTokensSecretName: xxxxx
-          envTag: xxxxx
-          secretNamespace: xxxxx
-    trident:
-      storage:
-        - backendName: "testbackend"
-          secretName: "netapp-admin"
-          secretNamespace: "eso-secrets"
-          svmLif: "example.com"
-          storageClassName: "netapp-nvme"
-          defaultStorageClass: "true"
-          useREST: "true"
+    config:
+      dynatrace:
+        connection:
+          - apiUrl: xxxx
+            apiTokensSecretName: xxxxx
+            envTag: xxxxx
+            secretNamespace: xxxxx
+      trident:
+        storage:
+          - backendName: "testbackend"
+            secretName: "netapp-admin"
+            secretNamespace: "eso-secrets"
+            svmLif: "example.com"
+            storageClassName: "netapp-nvme"
+            defaultStorageClass: "true"
+            useREST: "true"
