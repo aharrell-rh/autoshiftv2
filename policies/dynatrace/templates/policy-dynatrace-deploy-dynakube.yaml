@@ -1,0 +1,149 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: policy-dynatrace-deploy-dynakube
+  namespace: {{ .Values.policy_namespace }}
+  annotations:
+    policy.open-cluster-management.io/standards: NIST SP 800-53
+    policy.open-cluster-management.io/categories: CA Security Assessment and Authorization
+    policy.open-cluster-management.io/controls: CA-2 Security Assessments, CA-7 Continuous Monitoring
+spec:
+  dependencies:
+    - name: policy-dynatrace-operator-install
+      namespace: {{ .Values.policy_namespace }}
+      apiVersion: policy.open-cluster-management.io/v1
+      compliance: Compliant
+      kind: Policy
+    - name: policy-dynatrace-api-key
+      namespace: {{ .Values.policy_namespace }}
+      apiVersion: policy.open-cluster-management.io/v1
+      compliance: Compliant
+      kind: Policy
+  disabled: false
+  hubTemplateOptions:
+    serviceAccountName: secret-reader
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: deploy-dynatrace-dynakube
+        spec:
+          evaluationInterval:
+            compliant: {{ ((($.Values.autoshift).evaluationInterval).compliant) | default "10m" }}
+            noncompliant: {{ ((($.Values.autoshift).evaluationInterval).noncompliant) | default "30s" }}
+          customMessage:
+            noncompliant: >-
+              {{ "{{hub" }} if and (eq .ManagedClusterName "local-cluster") (not (index .ManagedClusterLabels "autoshift.io/dynatrace-hub-cluster-name")) {{ "hub}}" }}
+              ❌ Hub cluster detected but dynatrace-hub-cluster-name label is missing! 
+              By default, ACM names the hub "local-cluster"; Dynatrace requires a unique name to import the hub correctly.
+              {{ "{{hub" }} end {{ "hub}}" }}
+              ❌ Double check your labels to make sure your DynaKube object has all of the information it needs. Reference documentation as needed.
+          remediationAction: enforce
+          severity: high
+          object-templates-raw: |
+            {{ "{{hub" }} $secret := index .ManagedClusterLabels "autoshift.io/dynatrace-api-key-secret" {{ "hub}}" }}
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: dynatrace.com/v1beta6
+                kind: DynaKube
+                metadata:
+                {{ "{{hub" }}- if eq .ManagedClusterName "local-cluster" {{ "hub}}" }}
+                  name: {{ "{{hub index .ManagedClusterLabels `autoshift.io/dynatrace-hub-cluster-name` hub}}" }}
+                {{ "{{hub" }}- else {{ "hub}}" }}
+                  name: {{ "{{hub .ManagedClusterName hub}}" }}
+                {{ "{{hub" }}- end {{ "hub}}" }}
+                  namespace: dynatrace
+                spec:
+                  tokens: dynakube
+                  apiUrl: https://{{ .Values.dynatrace.apiUrl }}
+                  skipCertCheck: false
+                  metadataEnrichment:
+                    enabled: true
+                  oneAgent:
+                    cloudNativeFullStack:
+                      tolerations:
+                        - effect: NoSchedule
+                          key: node-role.kubernetes.io/master
+                          operator: Exists
+                        - effect: NoSchedule
+                          key: node-role.kubernetes.io/control-plane
+                          operator: Exists
+                  activeGate:
+                    capabilities:
+                      - routing
+                      - kubernetes-monitoring
+                      - dynatrace-api
+                    resources:
+                      requests:
+                        cpu:  {{ ((.Values.dynatrace.activeGate).requests).cpu | default "500m" }}
+                        memory: {{ ((.Values.dynatrace.activeGate).requests).memory | default "512Mi" }} 
+                      limits:
+                        cpu: {{ ((.Values.dynatrace.activeGate).limits).memory | default "1000m" }}
+                        memory: {{ ((.Values.dynatrace.activeGate).limits).memory | default "1.5Gi" }} 
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: dynatrace-dynakube-test
+          namespace: policies-autoshift
+        spec:
+          remediationAction: inform # will be overridden by remediationAction in parent policy
+          severity: high
+          object-templates-raw: |
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: dynatrace.com/v1beta6
+                kind: DynaKube
+                metadata:
+                {{ "{{hub" }}- if eq .ManagedClusterName "local-cluster" {{ "hub}}" }}
+                  name: {{ "{{hub index .ManagedClusterLabels `autoshift.io/dynatrace-hub-cluster-name` hub}}" }}
+                {{ "{{hub" }}- else {{ "hub}}" }}
+                  name: {{ "{{hub .ManagedClusterName hub}}" }}
+                {{ "{{hub" }}- end {{ "hub}}" }}
+                  namespace: dynatrace
+                status:
+                  phase: Running
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: placement-policy-dynatrace-deploy-dynakube
+  namespace: {{ .Values.policy_namespace }}
+spec:
+  clusterSets:
+  {{- range $clusterSet, $value := .Values.managedClusterSets }}
+    - {{ $clusterSet }}
+  {{- end }}
+  {{- range $clusterSet, $value := .Values.hubClusterSets }}
+    - {{ $clusterSet }}
+  {{- end }}
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: 'autoshift.io/dynatrace'
+              operator: In
+              values:
+              - 'true'
+            - key: 'autoshift.io/dynatrace-api-key-secret'
+              operator: Exists
+  tolerations:
+    - key: cluster.open-cluster-management.io/unreachable
+      operator: Exists
+    - key: cluster.open-cluster-management.io/unavailable
+      operator: Exists
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: placement-policy-dynatrace-deploy-dynakube
+  namespace: {{ .Values.policy_namespace }}
+placementRef:
+  name: placement-policy-dynatrace-deploy-dynakube
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+subjects:
+  - name: policy-dynatrace-deploy-dynakube
+    apiGroup: policy.open-cluster-management.io
+    kind: Policy
