@@ -14,8 +14,7 @@ skipOperatorInstall: false
 
 # Job image for waiting for CRD
 # Use internal registry for disconnected environments
-image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
-
+image: quay.io/openshift/origin-cli:latest
 # Git repository secrets (optional)
 secrets: []
 # EXAMPLE:
