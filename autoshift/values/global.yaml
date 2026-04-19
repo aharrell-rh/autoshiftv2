@@ -9,7 +9,7 @@ autoshift:
   dryRun: false
 
 autoshiftGitRepo: https://github.com/aharrell-rh/autoshiftv2.git
-autoshiftGitBranchTag: work/aws-cluster
+autoshiftGitBranchTag: sno
 # Tell autoshfit to source values files from a different repo (must share directory structure)
 #autoshiftValues:
 #  repoUrl: https://github.com/auto-shift/autoshiftv2.git
