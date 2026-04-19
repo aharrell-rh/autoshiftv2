@@ -376,7 +376,7 @@ hubClusterSets:
       opentelemetry-source: redhat-operators
       opentelemetry-source-namespace: openshift-marketplace
       ### Dynatrace
-      dynatrace: 'true'
+      dynatrace: 'false'
       dynatrace-subscription-name: dynatrace-operator
       dynatrace-channel: alpha
       dynatrace-source: certified-operators
@@ -384,7 +384,7 @@ hubClusterSets:
       dynatrace-install-plan-approval: Automatic
       dynatrace-hub-cluster-name: 'thisisafakeclustername'
       ### Trident
-      trident: 'true'
+      trident: 'false'
       trident-name: trident-operator
       trident-install-plan-approval: Automatic
       trident-source: certified-operators
